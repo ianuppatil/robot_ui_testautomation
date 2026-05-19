@@ -39,6 +39,6 @@ jobs:
         with:
           name: robot-reports
           path: |
-            output.xml
-            report.html
-            log.html
+            output*.xml
+            report*.html
+            log*.html
