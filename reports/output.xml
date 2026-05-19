@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<robot generator="Robot 7.1.1 (Python 3.14.0 on win32)" generated="2026-05-19T14:57:36.870700" rpa="false" schemaversion="5">
+<suite id="s1" name="Tests" source="C:\Users\patilanu\PycharmProjects\robot_UI_TestAutomation\tests">
+<suite id="s1-s1" name="Amazon Homepage" source="C:\Users\patilanu\PycharmProjects\robot_UI_TestAutomation\tests\amazon_homepage.robot">
+<kw name="Open Amazon Homepage" type="SETUP">
+<kw name="Evaluate" owner="BuiltIn">
+<msg time="2026-05-19T14:57:37.255483" level="INFO">${chrome_options} = &lt;selenium.webdriver.chrome.options.Options object at 0x000001FED157CAD0&gt;</msg>
+<var>${chrome_options}</var>
+<arg>sys.modules['selenium.webdriver'].ChromeOptions()</arg>
+<arg>modules=sys,selenium.webdriver</arg>
+<doc>Evaluates the given expression in Python and returns the result.</doc>
+<status status="PASS" start="2026-05-19T14:57:37.249681" elapsed="0.005884"/>
+</kw>
+<kw name="Call Method" owner="BuiltIn">
+<arg>${chrome_options}</arg>
+<arg>add_argument</arg>
+<arg>--start-maximized</arg>
+<doc>Calls the named method of the given object with the provided arguments.</doc>
+<status status="PASS" start="2026-05-19T14:57:37.255870" elapsed="0.000249"/>
+</kw>
+<if>
+<branch type="IF" condition="'$DRIVER_PATH' != ''">
+<kw name="Open Browser" owner="SeleniumLibrary">
+<msg time="2026-05-19T14:57:37.256947" level="INFO">Opening browser 'chrome' to base url 'about:blank'.</msg>
+<arg>about:blank</arg>
+<arg>${BROWSER}</arg>
+<arg>options=${chrome_options}</arg>
+<arg>executable_path=${DRIVER_PATH}</arg>
+<doc>Opens a new browser instance to the optional ``url``.</doc>
+<status status="PASS" start="2026-05-19T14:57:37.256570" elapsed="0.842912"/>
+</kw>
+<status status="PASS" start="2026-05-19T14:57:37.256255" elapsed="0.843406"/>
+</branch>
+<branch type="ELSE">
+<kw name="Open Browser" owner="SeleniumLibrary">
+<arg>about:blank</arg>
+<arg>${BROWSER}</arg>
+<arg>options=${chrome_options}</arg>
+<doc>Opens a new browser instance to the optional ``url``.</doc>
+<status status="NOT RUN" start="2026-05-19T14:57:38.100051" elapsed="0.000047"/>
+</kw>
+<status status="NOT RUN" start="2026-05-19T14:57:38.099764" elapsed="0.000399"/>
+</branch>
+<status status="PASS" start="2026-05-19T14:57:37.256222" elapsed="0.843993"/>
+</if>
+<kw name="Go To" owner="SeleniumLibrary">
+<msg time="2026-05-19T14:57:38.100658" level="INFO">Opening url 'https://www.amazon.de/'</msg>
+<arg>${AMAZON_URL}</arg>
+<doc>Navigates the current browser window to the provided ``url``.</doc>
+<status status="PASS" start="2026-05-19T14:57:38.100364" elapsed="1.867749"/>
+</kw>
+<kw name="Wait Until Location Contains" owner="SeleniumLibrary">
+<arg>amazon.de</arg>
+<arg>20s</arg>
+<doc>Waits until the current URL contains ``expected``.</doc>
+<status status="PASS" start="2026-05-19T14:57:39.968405" elapsed="0.011107"/>
+</kw>
+<status status="PASS" start="2026-05-19T14:57:37.248970" elapsed="2.730753"/>
+</kw>
+<test id="s1-s1-t1" name="Amazon.de Homepage Loads Successfully" line="14">
+<kw name="Handle Cookie Consent If Present">
+<kw name="Run Keyword And Return Status" owner="BuiltIn">
+<kw name="Wait Until Element Is Visible" owner="SeleniumLibrary">
+<arg>id=sp-cc-accept</arg>
+<arg>5s</arg>
+<doc>Waits until the element ``locator`` is visible.</doc>
+<status status="PASS" start="2026-05-19T14:57:39.981405" elapsed="3.301138"/>
+</kw>
+<msg time="2026-05-19T14:57:43.282925" level="INFO">${is_visible} = True</msg>
+<var>${is_visible}</var>
+<arg>Wait Until Element Is Visible</arg>
+<arg>id=sp-cc-accept</arg>
+<arg>5s</arg>
+<doc>Runs the given keyword with given arguments and returns the status as a Boolean value.</doc>
+<status status="PASS" start="2026-05-19T14:57:39.981205" elapsed="3.301797"/>
+</kw>
+<if>
+<branch type="IF" condition="${is_visible}">
+<kw name="Click Button" owner="SeleniumLibrary">
+<msg time="2026-05-19T14:57:43.284089" level="INFO">Clicking button 'id=sp-cc-accept'.</msg>
+<arg>id=sp-cc-accept</arg>
+<doc>Clicks the button identified by ``locator``.</doc>
+<status status="PASS" start="2026-05-19T14:57:43.283655" elapsed="0.413988"/>
+</kw>
+<status status="PASS" start="2026-05-19T14:57:43.283273" elapsed="0.414571"/>
+</branch>
+<status status="PASS" start="2026-05-19T14:57:43.283213" elapsed="0.414747"/>
+</if>
+<status status="PASS" start="2026-05-19T14:57:39.980810" elapsed="3.717308"/>
+</kw>
+<kw name="Wait Until Element Is Visible" owner="SeleniumLibrary">
+<arg>id=nav-logo-sprites</arg>
+<arg>20s</arg>
+<doc>Waits until the element ``locator`` is visible.</doc>
+<status status="PASS" start="2026-05-19T14:57:43.699008" elapsed="0.065621"/>
+</kw>
+<kw name="Element Should Be Visible" owner="SeleniumLibrary">
+<msg time="2026-05-19T14:57:43.834051" level="INFO">Element 'id=nav-logo-sprites' is displayed.</msg>
+<arg>id=nav-logo-sprites</arg>
+<doc>Verifies that the element identified by ``locator`` is visible.</doc>
+<status status="PASS" start="2026-05-19T14:57:43.765591" elapsed="0.068703"/>
+</kw>
+<kw name="Element Should Be Visible" owner="SeleniumLibrary">
+<msg time="2026-05-19T14:57:43.886636" level="INFO">Element 'id=twotabsearchtextbox' is displayed.</msg>
+<arg>id=twotabsearchtextbox</arg>
+<doc>Verifies that the element identified by ``locator`` is visible.</doc>
+<status status="PASS" start="2026-05-19T14:57:43.835361" elapsed="0.051492"/>
+</kw>
+<kw name="Element Should Be Visible" owner="SeleniumLibrary">
+<msg time="2026-05-19T14:57:43.951080" level="INFO">Element 'id=nav-xshop' is displayed.</msg>
+<arg>id=nav-xshop</arg>
+<doc>Verifies that the element identified by ``locator`` is visible.</doc>
+<status status="PASS" start="2026-05-19T14:57:43.888160" elapsed="0.063169"/>
+</kw>
+<kw name="Scroll Element Into View" owner="SeleniumLibrary">
+<arg>id=navFooter</arg>
+<doc>Scrolls the element identified by ``locator`` into view.</doc>
+<status status="PASS" start="2026-05-19T14:57:43.952388" elapsed="0.325344"/>
+</kw>
+<kw name="Element Should Be Visible" owner="SeleniumLibrary">
+<msg time="2026-05-19T14:57:44.301647" level="INFO">Element 'id=navFooter' is displayed.</msg>
+<arg>id=navFooter</arg>
+<doc>Verifies that the element identified by ``locator`` is visible.</doc>
+<status status="PASS" start="2026-05-19T14:57:44.278823" elapsed="0.023117"/>
+</kw>
+<kw name="Get Title" owner="SeleniumLibrary">
+<msg time="2026-05-19T14:57:44.311873" level="INFO">${page_title} = Amazon.de: Low Prices in Electronics, Books, Sports Equipment &amp; more</msg>
+<var>${page_title}</var>
+<doc>Returns the title of the current page.</doc>
+<status status="PASS" start="2026-05-19T14:57:44.302878" elapsed="0.009088"/>
+</kw>
+<kw name="Should Contain" owner="BuiltIn">
+<arg>${page_title}</arg>
+<arg>${EXPECTED_TITLE_PART}</arg>
+<doc>Fails if ``container`` does not contain ``item`` one or more times.</doc>
+<status status="PASS" start="2026-05-19T14:57:44.312969" elapsed="0.000504"/>
+</kw>
+<kw name="Get Location" owner="SeleniumLibrary">
+<msg time="2026-05-19T14:57:44.321006" level="INFO">${current_url} = https://www.amazon.de/</msg>
+<var>${current_url}</var>
+<doc>Returns the current browser window URL.</doc>
+<status status="PASS" start="2026-05-19T14:57:44.314474" elapsed="0.006610"/>
+</kw>
+<kw name="Should Start With" owner="BuiltIn">
+<arg>${current_url}</arg>
+<arg>${AMAZON_URL}</arg>
+<doc>Fails if the string ``str1`` does not start with the string ``str2``.</doc>
+<status status="PASS" start="2026-05-19T14:57:44.321786" elapsed="0.000281"/>
+</kw>
+<kw name="Capture Page Screenshot" owner="SeleniumLibrary">
+<msg time="2026-05-19T14:57:44.497501" level="INFO" html="true">&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td colspan="3"&gt;&lt;a href="amazon_homepage_pass.png"&gt;&lt;img src="amazon_homepage_pass.png" width="800px"&gt;&lt;/a&gt;</msg>
+<arg>amazon_homepage_pass.png</arg>
+<doc>Takes a screenshot of the current page and embeds it into a log file.</doc>
+<status status="PASS" start="2026-05-19T14:57:44.322731" elapsed="0.174974"/>
+</kw>
+<doc>Launch Amazon.de and validate key homepage elements.</doc>
+<status status="PASS" start="2026-05-19T14:57:39.979889" elapsed="4.518698"/>
+</test>
+<kw name="Close Browser" owner="SeleniumLibrary" type="TEARDOWN">
+<doc>Closes the current browser.</doc>
+<status status="PASS" start="2026-05-19T14:57:44.501000" elapsed="2.885925"/>
+</kw>
+<doc>Smoke test for Amazon.de homepage UI elements.</doc>
+<status status="PASS" start="2026-05-19T14:57:36.903175" elapsed="10.483855"/>
+</suite>
+<status status="PASS" start="2026-05-19T14:57:36.872121" elapsed="10.517146"/>
+</suite>
+<statistics>
+<total>
+<stat pass="1" fail="0" skip="0">All Tests</stat>
+</total>
+<tag>
+</tag>
+<suite>
+<stat pass="1" fail="0" skip="0" id="s1" name="Tests">Tests</stat>
+<stat pass="1" fail="0" skip="0" id="s1-s1" name="Amazon Homepage">Tests.Amazon Homepage</stat>
+</suite>
+</statistics>
+<errors>
+</errors>
+</robot>

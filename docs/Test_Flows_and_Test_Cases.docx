@@ -1,0 +1,228 @@
+Robot UI Automation - Test Flows and Test Cases
+===============================================
+
+1) Purpose
+----------
+This document explains what the automated tests validate on Amazon.de and how the flows work.
+It is written for:
+- people familiar with automation/testing technology
+- people who only need to understand business behavior and expected outcomes
+
+
+2) Scope
+--------
+Application under test: https://www.amazon.de/
+Automation stack: Robot Framework + SeleniumLibrary
+Execution modes:
+- Local machine (headed or headless Chrome)
+- GitLab pipeline (headless Chrome)
+
+
+3) Business View of Test Flows
+------------------------------
+Flow A - Homepage validation
+- Open Amazon.de
+- Confirm key homepage areas are visible (logo, search, navigation, footer)
+- Confirm page title and URL look correct
+
+Flow B - Product search
+- Search for a product keyword
+- Confirm search results appear
+- Confirm search box still reflects the searched keyword
+
+Flow C - Product details page
+- Open a product from search results
+- Confirm product title, price, and rating are visible
+- Confirm at least one description/details section is visible
+
+Flow D - Guest add-to-cart
+- Add a product to the cart without login
+- Confirm cart count increases
+- Confirm cart shows selected item, quantity, and subtotal values consistently
+
+Flow E - Search filters and sorting
+- Apply Apple brand filter
+- Apply low-to-high sort option
+- Confirm filtered results align with selected criteria and sorting state
+
+
+4) Test Case Catalog
+--------------------
+TC-01: Amazon.de Homepage Loads Successfully
+Objective:
+- Validate homepage baseline health.
+
+Validations:
+- Logo visible
+- Search bar visible
+- Navigation menu visible
+- Footer visible
+- Title contains "Amazon.de"
+- Current URL starts with https://www.amazon.de/
+
+Expected result:
+- All checks pass and a homepage screenshot is captured.
+
+
+TC-02: Product Search Functionality
+Objective:
+- Validate that search returns usable results.
+
+Test data:
+- Search keyword: Laptop
+
+Validations:
+- Search results list appears
+- At least one result card exists
+- Search box contains the searched text
+
+Expected result:
+- Search results are displayed and search context is retained.
+
+
+TC-03: Product Details Page Validation
+Objective:
+- Validate product details page core content and sections.
+
+Test data:
+- Search keyword for stable PDP flow: wireless mouse
+
+Flow:
+- Perform search
+- Open first valid non-sponsored result with visible price
+
+Validations:
+- Product title visible
+- Product price visible
+- Product rating visible
+- Feature bullets visible
+- At least one of overview/details sections visible
+
+Expected result:
+- Product details page is complete enough for user decision-making.
+
+
+TC-04: Add to Cart Without Login (Guest Flow)
+Objective:
+- Validate guest shopping cart behavior without sign-in.
+
+Test data:
+- Search keyword: wireless mouse
+- Expected quantity: 1
+
+Flow:
+- Open valid product details page
+- Capture title and price
+- Add to cart
+- Open cart
+
+Validations:
+- Cart count increments by 1
+- Cart page displays selected product title (prefix match)
+- Cart quantity equals 1
+- Cart item price matches product page price
+- Cart subtotal equals (item price x quantity)
+
+Expected result:
+- Guest cart behavior works and displayed totals are consistent.
+
+
+TC-05: Search Filters & Sorting
+Objective:
+- Validate filtering and sorting behavior on results page.
+
+Test data:
+- Search keyword: Laptop
+- Brand filter: Apple
+- Sort option: Price low to high
+
+Validations:
+- Filtered URL contains Apple brand filter marker
+- Top results are present
+- Top result titles contain "Apple" pattern
+- Selected sort option equals price-ascending value
+- Sorted-state marker present in URL
+
+Expected result:
+- Filter and sort controls produce expected targeted result set.
+
+
+5) Technical Mapping (Page Object Model)
+----------------------------------------
+Project uses page-based separation for both variables and keywords.
+
+Variables by page:
+- resources/variables/common_variables.robot
+- resources/variables/home_page_variables.robot
+- resources/variables/search_results_page_variables.robot
+- resources/variables/product_details_page_variables.robot
+- resources/variables/cart_page_variables.robot
+
+Keywords by page:
+- resources/keywords/common_keywords.robot
+- resources/keywords/home_page_keywords.robot
+- resources/keywords/search_results_page_keywords.robot
+- resources/keywords/product_details_page_keywords.robot
+- resources/keywords/cart_page_keywords.robot
+
+Aggregator resources:
+- resources/variables/amazon_homepage_variables.robot
+- resources/keywords/amazon_homepage_keywords.robot
+
+Test suite file:
+- tests/amazon_homepage.robot
+
+
+6) Stability and Data Strategy
+------------------------------
+- Product-details and cart flows use "wireless mouse" for better consistency.
+- Search/filter flow keeps "Laptop" to cover broader catalog behavior.
+- Product selection ignores sponsored links and prefers entries with visible price.
+- Headless mode is supported for CI and local reproducibility.
+
+
+7) Execution Guide
+------------------
+Install dependencies:
+- python -m pip install -r requirements.txt
+
+Run all tests headed:
+- robot -T tests\amazon_homepage.robot
+
+Run all tests headless:
+- robot -T --variable HEADLESS:true --variable BROWSER:chrome tests\amazon_homepage.robot
+
+Run a single test by name:
+- robot -T --test "Product Details Page Validation" tests\amazon_homepage.robot
+
+
+8) Reports and Outputs
+----------------------
+Robot generates:
+- output XML
+- log HTML
+- report HTML
+- screenshots on success paths
+
+In CI, artifacts are collected from reports/.
+
+
+9) Pass/Fail Interpretation
+---------------------------
+A test is PASS when all validations in its flow are satisfied.
+A test is FAIL when any key page element, data expectation, or state transition is not met.
+
+Typical failure categories:
+- Dynamic UI/DOM change on Amazon
+- Temporary page/region variant
+- Element timing or rendering delay
+- Product catalog variance for selected keyword
+
+
+10) Suggested Maintenance Approach
+----------------------------------
+- Revalidate locators monthly for high-change pages (search/cart).
+- Keep one stable keyword per critical flow (PDP/cart) for reliability.
+- Retain one broad keyword (Laptop) for realistic search/filter coverage.
+- Keep headless and headed runs in regular regression to detect mode-specific issues.
+
