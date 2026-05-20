@@ -17,6 +17,13 @@ This folder contains the project documentation for the Amazon.de UI automation s
   - local headless
   - GitLab/GitHub CI headless pipeline
 
+## GitHub Actions Behavior for Amazon.de
+
+- The workflow uses `scripts/run_robot_ci.py` to run Robot tests in CI.
+- If Amazon serves a challenge/captcha page to a GitHub-hosted runner IP, the script retries once.
+- If all tests are still blocked after the retry, the workflow completes successfully and records the run as skipped with a warning/summary instead of failing due to an external anti-bot block.
+- For reliable full Amazon UI execution in CI, prefer a `self-hosted` runner.
+
 ## Quick Run Commands
 
 Install dependencies:

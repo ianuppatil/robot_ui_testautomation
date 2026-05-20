@@ -19,9 +19,11 @@ Open Amazon Browser Session
     ${headless_enabled}=    Evaluate    str($HEADLESS).strip().lower() in ('1', 'true', 'yes', 'y')
     ${chrome_binary_set}=    Evaluate    bool(str($CHROME_BINARY).strip())
     ${local_driver_path}=    Set Variable    ${EXECDIR}${/}chromedriver.exe
-    ${has_local_driver}=    Run Keyword And Return Status    File Should Exist    ${local_driver_path}
-    ${has_custom_driver}=    Run Keyword And Return Status    Should Not Be Empty    ${DRIVER_PATH}
+    ${has_local_driver}=    Evaluate    __import__('os').path.isfile($local_driver_path)
+    ${has_custom_driver}=    Evaluate    bool(str($DRIVER_PATH).strip())
     Call Method    ${chrome_options}    add_argument    --start-maximized
+    ${chrome_options}=    Evaluate    $chrome_options.add_argument('--disable-blink-features=AutomationControlled') or $chrome_options
+    ${chrome_options}=    Evaluate    $chrome_options.add_argument('--lang=en-US') or $chrome_options
     IF    ${headless_enabled}
         ${chrome_options}=    Evaluate    $chrome_options.add_argument('--headless=new') or $chrome_options
         ${chrome_options}=    Evaluate    $chrome_options.add_argument('--window-size=1920,1080') or $chrome_options
@@ -39,10 +41,14 @@ Open Amazon Browser Session
         Open Browser    about:blank    ${BROWSER}    options=${chrome_options}
     END
 Handle Cookie Consent If Present
-    ${is_visible}=    Run Keyword And Return Status
-    ...    Wait Until Element Is Visible    ${COOKIE_ACCEPT_LOCATOR}    5s
-    IF    ${is_visible}
-        Click Button    ${COOKIE_ACCEPT_LOCATOR}
+    ${cookie_present}=    Execute JavaScript
+    ...    const button = document.querySelector('#sp-cc-accept');
+    ...    return Boolean(button);
+    IF    ${cookie_present}
+        ${clicked}=    Run Keyword And Return Status    Click Button    ${COOKIE_ACCEPT_LOCATOR}
+        IF    not ${clicked}
+            Execute JavaScript    const button = document.querySelector('#sp-cc-accept'); if (button) { button.click(); }
+        END
     END
 
 Capture Top Of Page Screenshot
@@ -58,13 +64,47 @@ Page Should Be Scrolled To Top
 
 Convert Price Text To Number
     [Arguments]    ${price_text}
-    ${normalized_price}=    Evaluate    __import__('re').sub(r'[^0-9,\.]', '', '''${price_text}''').replace('.', '').replace(',', '.')
+    ${cleaned_price}=    Evaluate    __import__('re').sub(r'[^0-9,\.]', '', str($price_text))
+    ${has_comma}=    Evaluate    ',' in $cleaned_price
+    ${has_dot}=    Evaluate    '.' in $cleaned_price
+    IF    ${has_comma} and ${has_dot}
+        ${comma_index}=    Evaluate    $cleaned_price.rfind(',')
+        ${dot_index}=    Evaluate    $cleaned_price.rfind('.')
+        IF    ${comma_index} > ${dot_index}
+            ${normalized_price}=    Evaluate    $cleaned_price.replace('.', '').replace(',', '.')
+        ELSE
+            ${normalized_price}=    Evaluate    $cleaned_price.replace(',', '')
+        END
+    ELSE IF    ${has_comma}
+        ${fraction_length}=    Evaluate    len($cleaned_price.split(',')[-1])
+        IF    ${fraction_length} == 2
+            ${normalized_price}=    Evaluate    $cleaned_price.replace('.', '').replace(',', '.')
+        ELSE
+            ${normalized_price}=    Evaluate    $cleaned_price.replace(',', '')
+        END
+    ELSE IF    ${has_dot}
+        ${fraction_length}=    Evaluate    len($cleaned_price.split('.')[-1])
+        IF    ${fraction_length} == 2
+            ${normalized_price}=    Set Variable    ${cleaned_price}
+        ELSE
+            ${normalized_price}=    Evaluate    $cleaned_price.replace('.', '')
+        END
+    ELSE
+        ${normalized_price}=    Set Variable    ${cleaned_price}
+    END
+    Should Not Be Empty    ${normalized_price}
     ${price_number}=    Convert To Number    ${normalized_price}
     RETURN    ${price_number}
 
 Ensure Amazon Homepage Is Ready
-    ${has_captcha}=    Run Keyword And Return Status
-    ...    Page Should Contain Element    css=input#captchacharacters, form[action*='validateCaptcha']
+    ${has_captcha}=    Execute JavaScript
+    ...    const bodyText = (document.body && document.body.innerText || '').toLowerCase();
+    ...    return Boolean(
+    ...      document.querySelector("input#captchacharacters") ||
+    ...      document.querySelector("form[action*='validateCaptcha']") ||
+    ...      bodyText.includes('robot check') ||
+    ...      bodyText.includes('enter the characters you see below')
+    ...    );
     IF    ${has_captcha}
         Handle Amazon Challenge Page    Homepage readiness check
     END
