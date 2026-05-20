@@ -9,6 +9,7 @@ on:
 jobs:
   robot-ui:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
 
     steps:
       - name: Checkout
@@ -46,16 +47,15 @@ jobs:
       - name: Run Robot tests (headless)
         env:
           HEADLESS: "true"
+          SKIP_ON_AMAZON_CHALLENGE: "true"
+          ROBOT_OUTPUTDIR: reports
+          ROBOT_SUITE: tests/amazon_smoke_tests.robot
+          ROBOT_MAX_ATTEMPTS: "2"
+          ROBOT_RETRY_DELAY_SECONDS: "20"
         run: |
           CHROME_BIN=$(which chrome || which google-chrome)
-          python -m robot \
-            --outputdir reports \
-            --xunit reports/xunit.xml \
-            --variable HEADLESS:true \
-            --variable SKIP_ON_AMAZON_CHALLENGE:true \
-            --variable BROWSER:chrome \
-            --variable CHROME_BINARY:$CHROME_BIN \
-            tests/amazon_smoke_tests.robot
+          export CHROME_BINARY="$CHROME_BIN"
+          python scripts/run_robot_ci.py
 
       - name: Upload Robot reports
         if: always()
