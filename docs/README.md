@@ -15,7 +15,7 @@ This folder contains the project documentation for the Amazon.de UI automation s
 - Execution modes:
   - local headed
   - local headless
-  - GitLab CI headless pipeline
+  - GitLab/GitHub CI headless pipeline
 
 ## Quick Run Commands
 
@@ -28,13 +28,19 @@ python -m pip install -r requirements.txt
 Run all tests (headed):
 
 ```powershell
-robot -T tests\amazon_homepage.robot
+robot -T tests\amazon_smoke_tests.robot
 ```
 
 Run all tests (headless):
 
 ```powershell
-robot -T --variable HEADLESS:true --variable BROWSER:chrome tests\amazon_homepage.robot
+robot -T --variable HEADLESS:true --variable BROWSER:chrome tests\amazon_smoke_tests.robot
+```
+
+Run in CI style (explicit browser binaries):
+
+```powershell
+python -m robot --outputdir reports --variable HEADLESS:true --variable BROWSER:chrome --variable CHROME_BINARY:"C:\\Path\\To\\chrome.exe" --variable DRIVER_PATH:"C:\\Path\\To\\chromedriver.exe" tests\amazon_smoke_tests.robot
 ```
 
 ## Audience Notes

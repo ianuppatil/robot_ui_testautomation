@@ -31,6 +31,7 @@ Open Amazon Homepage
     END
     Go To    ${AMAZON_URL}
     Wait Until Location Contains    amazon.de    20s
+    Wait Until Keyword Succeeds      3x    10s    Ensure Amazon Homepage Is Ready
 
 Handle Cookie Consent If Present
     ${is_visible}=    Run Keyword And Return Status
@@ -55,4 +56,20 @@ Convert Price Text To Number
     ${normalized_price}=    Evaluate    __import__('re').sub(r'[^0-9,\.]', '', '''${price_text}''').replace('.', '').replace(',', '.')
     ${price_number}=    Convert To Number    ${normalized_price}
     RETURN    ${price_number}
+
+Ensure Amazon Homepage Is Ready
+    ${has_captcha}=    Run Keyword And Return Status
+    ...    Page Should Contain Element    css=input#captchacharacters, form[action*='validateCaptcha']
+    IF    ${has_captcha}
+        Capture Page Screenshot
+        Fail    Amazon bot/captcha page detected in CI environment. Retry run or use a runner/IP with normal access to amazon.de.
+    END
+    ${search_ready}=    Run Keyword And Return Status
+    ...    Wait Until Element Is Visible    ${SEARCH_BAR_LOCATOR}    10s
+    ${logo_ready}=    Run Keyword And Return Status
+    ...    Wait Until Element Is Visible    ${LOGO_LOCATOR}    10s
+    ${logo_fallback_ready}=    Run Keyword And Return Status
+    ...    Wait Until Element Is Visible    ${LOGO_FALLBACK_LOCATOR}    10s
+    ${is_ready}=    Evaluate    $search_ready or $logo_ready or $logo_fallback_ready
+    Should Be True    ${is_ready}    Amazon homepage did not become ready in time.
 

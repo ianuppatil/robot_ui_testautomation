@@ -8,21 +8,21 @@ Resource         ../variables/product_details_page_variables.robot
 *** Keywords ***
 Validate Product Search Results
     [Arguments]    ${product_name}
-    Wait Until Element Is Visible    ${SEARCH_RESULTS_LOCATOR}    20s
-    ${results_count}=    Get Element Count    ${SEARCH_RESULTS_LOCATOR}
+    Wait Until Keyword Succeeds      6x    10s    Ensure Search Results Page Is Ready
+    ${primary_count}=    Get Element Count    ${SEARCH_RESULTS_LOCATOR}
+    ${fallback_count}=    Get Element Count    ${SEARCH_RESULTS_FALLBACK_LOCATOR}
+    ${results_count}=    Evaluate    max(int($primary_count), int($fallback_count))
     Should Be True                  ${results_count} > 0    No search results were displayed for ${product_name}.
     ${search_box_value}=    Get Value    ${SEARCH_BAR_LOCATOR}
     Should Contain                  ${search_box_value}    ${product_name}
 
 Get First Search Result Product Url
     ${product_url}=    Execute JavaScript
-    ...    const links = Array.from(document.querySelectorAll("[data-component-type='s-search-result'] .a-link-normal.s-line-clamp-2.s-link-style.a-text-normal"));
+    ...    const links = Array.from(document.querySelectorAll("[data-component-type='s-search-result'] .a-link-normal.s-line-clamp-2.s-link-style.a-text-normal, [data-cy='title-recipe'] .a-link-normal.s-line-clamp-2.s-link-style.a-text-normal"));
     ...    const match = links.find(link => {
     ...        const href = link.href || '';
     ...        const hasText = (link.textContent || '').trim().length > 0;
-    ...        const resultCard = link.closest("[data-component-type='s-search-result']");
-    ...        const hasPrice = !!resultCard && !!resultCard.querySelector('.a-price .a-price-whole') && !!resultCard.querySelector('.a-price .a-price-fraction');
-    ...        return hasText && hasPrice && href && !href.includes('/sspa/');
+    ...        return hasText && href && !href.includes('/sspa/');
     ...    });
     ...    return match ? match.href : null;
     Should Not Be Empty              ${product_url}
@@ -35,17 +35,23 @@ Open First Search Result Product Details Page
 
 Apply Apple Brand Filter
     Handle Cookie Consent If Present
-    Wait Until Element Is Visible    ${APPLE_BRAND_FILTER_LOCATOR}    20s
-    Scroll Element Into View         ${APPLE_BRAND_FILTER_LOCATOR}
-    ${brand_filter_url}=    Get Element Attribute    ${APPLE_BRAND_FILTER_LOCATOR}    href
+    ${filter_visible}=    Run Keyword And Return Status
+    ...    Wait Until Element Is Visible    ${APPLE_BRAND_FILTER_LOCATOR}    8s
+    IF    ${filter_visible}
+        Scroll Element Into View         ${APPLE_BRAND_FILTER_LOCATOR}
+        ${brand_filter_url}=    Get Element Attribute    ${APPLE_BRAND_FILTER_LOCATOR}    href
+    ELSE
+        ${brand_filter_url}=    Get Apple Brand Filter Url
+    END
+    Should Not Be Empty              ${brand_filter_url}
     Go To                            ${brand_filter_url}
-    Wait Until Element Is Visible    ${SEARCH_RESULTS_LOCATOR}    20s
+    Wait Until Keyword Succeeds      6x    10s    Ensure Search Results Page Is Ready
 
 Apply Sort Option
     [Arguments]    ${sort_value}
     Select From List By Value        ${SEARCH_RESULT_SORT_DROPDOWN_LOCATOR}    ${sort_value}
     Wait Until Keyword Succeeds      10x    1s    Sort Option Should Be Selected    ${sort_value}
-    Wait Until Element Is Visible    ${SEARCH_RESULTS_LOCATOR}    20s
+    Wait Until Keyword Succeeds      6x    10s    Ensure Search Results Page Is Ready
 
 Sort Option Should Be Selected
     [Arguments]    ${sort_value}
@@ -74,12 +80,53 @@ Validate Results Sorted By Price Ascending
 Get Top Result Titles
     [Arguments]    ${count}=5
     ${titles}=    Execute JavaScript
-    ...    return Array.from(document.querySelectorAll("[data-component-type='s-search-result'] h2 span"))
+    ...    const resultTitles = Array.from(document.querySelectorAll("[data-component-type='s-search-result'] h2 span"));
+    ...    if (!resultTitles.length) {
+    ...      return [];
+    ...    }
+    ...    return resultTitles
     ...      .map(item => item.textContent.trim())
     ...      .filter(Boolean)
-    ...      .slice(0, arguments[0]);
+    ...      .slice(0, Number(arguments[0]) || 5);
     ...    ARGUMENTS    ${count}
+    ${titles}=    Evaluate    $titles if isinstance($titles, list) else []
     RETURN    ${titles}
+
+Ensure Search Results Page Is Ready
+    Fail If Amazon Challenge Page Is Displayed
+    ${primary_ready}=    Run Keyword And Return Status
+    ...    Wait Until Element Is Visible    ${SEARCH_RESULTS_LOCATOR}    10s
+    ${fallback_ready}=    Run Keyword And Return Status
+    ...    Wait Until Element Is Visible    ${SEARCH_RESULTS_FALLBACK_LOCATOR}    10s
+    ${list_ready}=    Run Keyword And Return Status
+    ...    Wait Until Element Is Visible    css=div.s-main-slot    10s
+    ${is_ready}=    Evaluate    $primary_ready or $fallback_ready or $list_ready
+    Should Be True    ${is_ready}    Search results page did not become ready in time.
+
+Fail If Amazon Challenge Page Is Displayed
+    ${has_challenge}=    Execute JavaScript
+    ...    const bodyText = (document.body && document.body.innerText || '').toLowerCase();
+    ...    return Boolean(
+    ...      document.querySelector("input#captchacharacters") ||
+    ...      document.querySelector("form[action*='validateCaptcha']") ||
+    ...      bodyText.includes('robot check') ||
+    ...      bodyText.includes('enter the characters you see below')
+    ...    );
+    IF    ${has_challenge}
+        Capture Page Screenshot
+        Fail    Amazon challenge/captcha page detected in CI. Retry run or use a self-hosted runner/IP with stable access.
+    END
+
+Get Apple Brand Filter Url
+    ${brand_filter_url}=    Execute JavaScript
+    ...    const links = Array.from(document.querySelectorAll('#s-refinements a'));
+    ...    const match = links.find(link => {
+    ...      const text = (link.textContent || '').trim().toLowerCase();
+    ...      const href = link.getAttribute('href') || '';
+    ...      return text === 'apple' || (text.includes('apple') && href.length > 0);
+    ...    });
+    ...    return match ? match.href : null;
+    RETURN    ${brand_filter_url}
 
 Capture Search Results Pass Screenshot
     Capture Top Of Page Screenshot   ${SEARCH_RESULTS_SCREENSHOT_NAME}
