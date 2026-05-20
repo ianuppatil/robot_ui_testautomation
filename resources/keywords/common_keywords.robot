@@ -6,6 +6,15 @@ Resource         ../variables/home_page_variables.robot
 
 *** Keywords ***
 Open Amazon Homepage
+    ${has_browser}=    Run Keyword And Return Status    Get Window Handles
+    IF    not ${has_browser}
+        Open Amazon Browser Session
+    END
+    Go To    ${AMAZON_URL}
+    Wait Until Location Contains    amazon.de    20s
+    Wait Until Keyword Succeeds      3x    10s    Ensure Amazon Homepage Is Ready
+
+Open Amazon Browser Session
     ${chrome_options}=    Evaluate    sys.modules['selenium.webdriver'].ChromeOptions()    modules=sys,selenium.webdriver
     ${headless_enabled}=    Evaluate    str($HEADLESS).strip().lower() in ('1', 'true', 'yes', 'y')
     ${chrome_binary_set}=    Evaluate    bool(str($CHROME_BINARY).strip())
@@ -29,10 +38,6 @@ Open Amazon Homepage
     ELSE
         Open Browser    about:blank    ${BROWSER}    options=${chrome_options}
     END
-    Go To    ${AMAZON_URL}
-    Wait Until Location Contains    amazon.de    20s
-    Wait Until Keyword Succeeds      3x    10s    Ensure Amazon Homepage Is Ready
-
 Handle Cookie Consent If Present
     ${is_visible}=    Run Keyword And Return Status
     ...    Wait Until Element Is Visible    ${COOKIE_ACCEPT_LOCATOR}    5s
@@ -61,8 +66,7 @@ Ensure Amazon Homepage Is Ready
     ${has_captcha}=    Run Keyword And Return Status
     ...    Page Should Contain Element    css=input#captchacharacters, form[action*='validateCaptcha']
     IF    ${has_captcha}
-        Capture Page Screenshot
-        Fail    Amazon bot/captcha page detected in CI environment. Retry run or use a runner/IP with normal access to amazon.de.
+        Handle Amazon Challenge Page    Homepage readiness check
     END
     ${search_ready}=    Run Keyword And Return Status
     ...    Wait Until Element Is Visible    ${SEARCH_BAR_LOCATOR}    10s
@@ -72,4 +76,13 @@ Ensure Amazon Homepage Is Ready
     ...    Wait Until Element Is Visible    ${LOGO_FALLBACK_LOCATOR}    10s
     ${is_ready}=    Evaluate    $search_ready or $logo_ready or $logo_fallback_ready
     Should Be True    ${is_ready}    Amazon homepage did not become ready in time.
+
+Handle Amazon Challenge Page
+    [Arguments]    ${context}=Unknown context
+    Capture Page Screenshot
+    ${skip_on_challenge}=    Evaluate    str($SKIP_ON_AMAZON_CHALLENGE).strip().lower() in ('1', 'true', 'yes', 'y')
+    IF    ${skip_on_challenge}
+        Skip    Amazon challenge/captcha detected in ${context}. Marking as skipped for CI stability.
+    END
+    Fail    Amazon bot/captcha page detected in ${context}. Retry run or use a runner/IP with normal access to amazon.de.
 

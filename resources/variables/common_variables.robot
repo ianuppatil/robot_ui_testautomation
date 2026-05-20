@@ -5,6 +5,7 @@ ${EXPECTED_TITLE_PART}       Amazon.de
 ${DRIVER_PATH}               ${EMPTY}
 ${HEADLESS}                  false
 ${CHROME_BINARY}             ${EMPTY}
+${SKIP_ON_AMAZON_CHALLENGE}  false
 
 ${SEARCH_TERM}               Laptop
 ${PRODUCT_DETAILS_SEARCH_TERM}    wireless mouse

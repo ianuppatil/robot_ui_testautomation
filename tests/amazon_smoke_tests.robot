@@ -2,8 +2,9 @@
 Documentation    Smoke test for Amazon.de homepage UI elements.
 Resource         ../resources/keywords/amazon_all_keywords.robot
 
+Suite Setup      Open Amazon Browser Session
+Suite Teardown   Close Browser
 Test Setup       Open Amazon Homepage
-Test Teardown    Close Browser
 
 *** Test Cases ***
 01 Verify Homepage Loads Successfully

@@ -17,6 +17,7 @@ Validate Product Search Results
     Should Contain                  ${search_box_value}    ${product_name}
 
 Get First Search Result Product Url
+    Ensure Search Results Page Is Ready
     ${product_url}=    Execute JavaScript
     ...    const links = Array.from(document.querySelectorAll("[data-component-type='s-search-result'] .a-link-normal.s-line-clamp-2.s-link-style.a-text-normal, [data-cy='title-recipe'] .a-link-normal.s-line-clamp-2.s-link-style.a-text-normal"));
     ...    const match = links.find(link => {
@@ -25,6 +26,7 @@ Get First Search Result Product Url
     ...        return hasText && href && !href.includes('/sspa/');
     ...    });
     ...    return match ? match.href : null;
+    Run Keyword If                  '${product_url}' == 'None'    Fail If Amazon Challenge Page Is Displayed
     Should Not Be Empty              ${product_url}
     RETURN    ${product_url}
 
@@ -113,8 +115,7 @@ Fail If Amazon Challenge Page Is Displayed
     ...      bodyText.includes('enter the characters you see below')
     ...    );
     IF    ${has_challenge}
-        Capture Page Screenshot
-        Fail    Amazon challenge/captcha page detected in CI. Retry run or use a self-hosted runner/IP with stable access.
+        Handle Amazon Challenge Page    Search results readiness check
     END
 
 Get Apple Brand Filter Url
