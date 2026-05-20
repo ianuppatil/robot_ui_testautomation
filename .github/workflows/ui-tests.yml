@@ -52,6 +52,7 @@ jobs:
             --outputdir reports \
             --xunit reports/xunit.xml \
             --variable HEADLESS:true \
+            --variable SKIP_ON_AMAZON_CHALLENGE:true \
             --variable BROWSER:chrome \
             --variable CHROME_BINARY:$CHROME_BIN \
             tests/amazon_smoke_tests.robot
