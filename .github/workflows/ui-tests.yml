@@ -31,8 +31,17 @@ jobs:
         run: |
           which chrome || true
           which google-chrome || true
+          which chromedriver || true
+          chromedriver --version || true
           google-chrome --version || true
           chrome --version || true
+
+      - name: Remove incompatible preinstalled ChromeDriver
+        run: |
+          if [ -x /usr/bin/chromedriver ]; then
+            sudo rm -f /usr/bin/chromedriver
+          fi
+          which chromedriver || true
 
       - name: Run Robot tests (headless)
         env:
